@@ -70,6 +70,31 @@ test('protocol 决定 port 默认值', () => {
   assert.strictEqual(loaded.upstreams.plain.port, 80, 'http 默认 80');
 });
 
+test('日志默认跟随实际 home，而不是写死的 ~/.gpt-router', () => {
+  // config.example.json 里 log.file 是字面量 "~/.gpt-router/router.log"。
+  // 照搬它的话，自定义 GPT_ROUTER_HOME 的实例会把日志写进默认目录——
+  // 多实例互相污染，隔离测试也会在真实目录留文件。
+  const dir = tmpdir();
+  fs.copyFileSync(path.join(__dirname, '..', 'config.example.json'), path.join(dir, 'config.json'));
+  const saved = process.env.GPT_ROUTER_HOME;
+  process.env.GPT_ROUTER_HOME = dir;
+  try {
+    const cfg = loadConfig({ env: {} });
+    assert.strictEqual(cfg.log.file, path.join(dir, 'router.log'));
+  } finally {
+    if (saved === undefined) delete process.env.GPT_ROUTER_HOME;
+    else process.env.GPT_ROUTER_HOME = saved;
+  }
+});
+
+test('显式指定的日志路径不被改写', () => {
+  const dir = tmpdir();
+  const cfg = structuredClone(MINIMAL);
+  cfg.log = { file: path.join(dir, 'explicit.log'), level: 'info' };
+  const loaded = loadConfig({ configPath: writeJson(dir, 'config.json', cfg), env: {} });
+  assert.strictEqual(loaded.log.file, path.join(dir, 'explicit.log'));
+});
+
 test('countTokens 按适配器给不同默认值', () => {
   const dir = tmpdir();
   const cfg = structuredClone(MINIMAL);

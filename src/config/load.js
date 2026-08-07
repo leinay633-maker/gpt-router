@@ -201,7 +201,17 @@ function loadConfig(opts = {}) {
   }
 
   const listen = withDefaults(parsed.listen, D.LISTEN);
+
+  // 日志默认跟随实际 home，而不是写死的 ~/.gpt-router。
+  //
+  // config.example.json 里 log.file 是字面量 "~/.gpt-router/router.log"，
+  // 而 ~ 只展开成 homedir，不认 GPT_ROUTER_HOME。照搬那个值的话，任何自定义
+  // home 的实例都会把日志写进默认目录——多实例互相污染，隔离测试也会在
+  // 真实目录里留下文件。所以示例里那个值等价于"用默认位置"，按实际 home 解析。
   const log = withDefaults(parsed.log, D.LOG);
+  if (log.file === D.LOG.file) {
+    log.file = path.join(home, 'router.log');
+  }
   const builtins = {
     ...withDefaults(parsed.builtins, { stripModelSuffix: D.BUILTINS.stripModelSuffix, healthz: D.BUILTINS.healthz }),
     domainInfo: withDefaults(parsed.builtins?.domainInfo, D.BUILTINS.domainInfo),
