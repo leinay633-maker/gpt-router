@@ -1,0 +1,29 @@
+# ── 凭证与本机配置：永不入库 ──
+secrets.json
+config.json
+!config.example.json
+!secrets.example.json
+.env
+.env.*
+
+# ── 安装时生成的产物（含被烤进去的本机 node 路径）──
+launcher.vbs
+*.plist
+*.service
+
+# ── 日志 ──
+*.log
+logs/
+
+# ── Node ──
+node_modules/
+npm-debug.log*
+package-lock.json
+*.tgz
+
+# ── 编辑器 / 操作系统 ──
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,86 @@
+{
+  "version": 1,
+
+  "listen": {
+    "host": "127.0.0.1",
+    "port": 8402,
+    "guardOrigin": true,
+    "requireToken": false
+  },
+
+  "log": {
+    "file": "~/.gpt-router/router.log",
+    "level": "info",
+    "maskKeys": true,
+    "logBodies": false
+  },
+
+  "secretsFile": "~/.gpt-router/secrets.json",
+
+  "builtins": {
+    "stripModelSuffix": true,
+    "healthz": true,
+    "domainInfo": {
+      "enabled": true,
+      "host": "api.anthropic.com",
+      "timeoutMs": 15000,
+      "failOpen": true
+    }
+  },
+
+  "upstreams": {
+    "anthropic": {
+      "protocol": "https",
+      "host": "api.anthropic.com",
+      "port": 443,
+      "pathPrefix": ""
+    },
+    "deepseek": {
+      "protocol": "https",
+      "host": "api.deepseek.com",
+      "port": 443,
+      "pathPrefix": "/anthropic"
+    }
+  },
+
+  "routes": [
+    {
+      "name": "deepseek",
+      "match": { "model": ["deepseek*"] },
+      "adapter": "passthrough",
+      "upstream": "deepseek",
+      "auth": {
+        "mode": "secrets",
+        "secretKey": "DEEPSEEK_KEY",
+        "header": "authorization",
+        "stripClientAuth": true
+      },
+      "allowModels": ["deepseek-chat", "deepseek-reasoner"],
+      "retry": {
+        "maxRetries": 5,
+        "backoffMs": [0, 400, 800, 1600, 3200, 6400],
+        "statuses": [429, 502, 503, 504],
+        "onConnectionError": true
+      },
+      "timeoutMs": 900000
+    },
+
+    {
+      "name": "anthropic-default",
+      "default": true,
+      "adapter": "passthrough",
+      "upstream": "anthropic",
+      "auth": {
+        "mode": "client",
+        "header": "inherit"
+      },
+      "retry": {
+        "maxRetries": 5,
+        "backoffMs": [0, 400, 800, 1600, 3200, 6400],
+        "statuses": [429, 502, 503, 504],
+        "onConnectionError": true
+      },
+      "timeoutMs": 900000
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+#!/bin/sh
+# gpt-router pre-commit —— 拦住任何跟着提交溜出去的凭证。
+#
+# 启用（克隆后跑一次）：
+#   git config core.hooksPath .githooks
+#
+# 只扫已暂存的内容，不是工作区——两者可能不同，而提交出去的是前者。
+# 确信是误报时可用 git commit --no-verify 跳过。
+
+exec node "$(git rev-parse --show-toplevel)/scripts/scan-secrets.js" --staged

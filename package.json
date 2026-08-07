@@ -1,0 +1,41 @@
+{
+  "name": "gpt-router",
+  "version": "0.1.0",
+  "description": "A local reverse proxy that lets Claude Code talk to non-Anthropic models through its built-in /model switcher.",
+  "keywords": [
+    "claude-code",
+    "anthropic",
+    "proxy",
+    "openai-responses",
+    "llm"
+  ],
+  "license": "MIT",
+  "type": "commonjs",
+  "bin": {
+    "gpt-router": "bin/gpt-router.js"
+  },
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "schema/",
+    "skills/",
+    ".claude-plugin/",
+    "config.example.json",
+    "secrets.example.json",
+    "README.md",
+    "SECURITY.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test \"test/**/*.test.js\"",
+    "check": "node bin/gpt-router.js check",
+    "scan": "node scripts/scan-secrets.js --all",
+    "verify:no-deps": "node scripts/verify-no-deps.js"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
