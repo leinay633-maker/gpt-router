@@ -1,0 +1,18 @@
+# 仓库内一律 LF。检出时不转换——node 和三平台的 shell 都能读 LF，
+# 而 CRLF 会让 .githooks/pre-commit 这类脚本在 WSL/Git Bash 下报
+# "bad interpreter"。
+* text=auto eol=lf
+
+# 显式声明为文本，避免某个文件因为内容里出现控制字节而被判成二进制、
+# 从此 diff 不可见（scan-secrets.js 曾因为一个字面 NUL 字节踩过）。
+*.js    text eol=lf
+*.json  text eol=lf
+*.md    text eol=lf
+*.sh    text eol=lf
+*.tmpl  text eol=lf
+*.yml   text eol=lf
+
+# Windows 专属产物必须是 CRLF：wscript 对 LF-only 的 .vbs 会解析失败。
+*.vbs   text eol=crlf
+*.ps1   text eol=crlf
+*.bat   text eol=crlf
