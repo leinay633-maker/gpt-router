@@ -3,6 +3,13 @@ Description=gpt-router (local Anthropic-protocol reverse proxy)
 Documentation=https://github.com/{{OWNER}}/gpt-router
 After=network-online.target
 
+# 崩溃循环熔断：60 秒内失败 5 次就停下，别无限重试。
+# 这两个键属于 [Unit] 而不是 [Service]——放错 section 的话 systemd 只打一行
+# "Unknown key name" 然后忽略它们，于是熔断静默失效，只剩 Restart 在工作。
+# 这是 CI 的 systemd-analyze verify 逮住的，本地没有 systemd 测不出来。
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
 [Service]
 Type=simple
 ExecStart={{NODE}} {{ENTRY}} run
@@ -12,10 +19,6 @@ Environment=GPT_ROUTER_HOME={{HOME}}
 # 我主动退出"，重启它就成了无限循环。
 Restart=on-failure
 RestartSec=5
-
-# 崩溃循环熔断：60 秒内失败 5 次就停下，别无限重试。
-StartLimitIntervalSec=60
-StartLimitBurst=5
 
 StandardOutput=append:{{STDOUT}}
 StandardError=append:{{STDERR}}

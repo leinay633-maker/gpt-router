@@ -24,8 +24,9 @@ jobs:
 
       # 没有 npm install —— 这个项目零运行期依赖，装机不需要它
 
+      # 走 test/run.js 而不是 --test 加 glob：glob 是 Node 21+ 才支持的
       - name: 单元与端到端测试
-        run: node --test "test/**/*.test.js"
+        run: node test/run.js
 
       - name: 零依赖断言
         run: node scripts/verify-no-deps.js

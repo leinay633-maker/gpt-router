@@ -181,7 +181,7 @@ gpt-router 只监听 `127.0.0.1`，不接受来自网络的连接。但它是一
 ## 开发
 
 ```bash
-node --test "test/**/*.test.js"   # 163 个测试，不需要网络
+npm test                          # 165 个测试，不需要网络
 node scripts/verify-no-deps.js    # 零依赖断言
 node scripts/scan-secrets.js --all
 ```

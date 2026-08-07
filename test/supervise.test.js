@@ -135,8 +135,21 @@ test('systemd unit 用 on-failure 并带崩溃熔断', () => {
 
   assert.match(unit, /Restart=on-failure/);
   assert.ok(!/Restart=always/.test(unit), 'always 会把主动退出也重启');
-  assert.match(unit, /StartLimitBurst=\d+/, '需要崩溃循环熔断');
   assert.match(unit, /ExecStart=\S+ \S+ run$/m);
+
+  // StartLimit* 属于 [Unit]。放进 [Service] 的话 systemd 只打一行
+  // "Unknown key name" 就忽略了，熔断静默失效——只检查"存在"抓不到这个错。
+  const sections = {};
+  let current = null;
+  for (const line of unit.split('\n')) {
+    const header = line.match(/^\[(\w+)\]/);
+    if (header) { current = header[1]; sections[current] = []; continue; }
+    if (current) sections[current].push(line.trim());
+  }
+  for (const key of ['StartLimitIntervalSec', 'StartLimitBurst']) {
+    assert.ok(sections.Unit.some((l) => l.startsWith(`${key}=`)), `${key} 必须在 [Unit] 里`);
+    assert.ok(!sections.Service.some((l) => l.startsWith(`${key}=`)), `${key} 不能放在 [Service]`);
+  }
 });
 
 test('VBS 启动器烤入真实 node 路径且调 _keepalive', () => {

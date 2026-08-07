@@ -31,7 +31,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node --test \"test/**/*.test.js\"",
+    "test": "node test/run.js",
     "check": "node bin/gpt-router.js check",
     "scan": "node scripts/scan-secrets.js --all",
     "verify:no-deps": "node scripts/verify-no-deps.js"
