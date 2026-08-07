@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>{{LABEL}}</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>{{NODE}}</string>
+    <string>{{ENTRY}}</string>
+    <string>run</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <!--
+    SuccessfulExit: false 而不是 KeepAlive: true。
+    正常退出（退出码 0）表示"端口已被占用，已有实例在跑，我主动退出"，
+    这种情况不该重启——否则就是每 N 秒 spawn 一次的无限循环。
+  -->
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+  </dict>
+
+  <key>ThrottleInterval</key>
+  <integer>5</integer>
+
+  <key>StandardOutPath</key>
+  <string>{{STDOUT}}</string>
+  <key>StandardErrorPath</key>
+  <string>{{STDERR}}</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>GPT_ROUTER_HOME</key>
+    <string>{{HOME}}</string>
+  </dict>
+
+  <key>ProcessType</key>
+  <string>Interactive</string>
+</dict>
+</plist>

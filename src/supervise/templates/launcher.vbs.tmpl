@@ -1,0 +1,12 @@
+' 由 gpt-router install 生成，请勿手改——重装会覆盖。
+'
+' 这一层的唯一作用是无窗口启动。PowerShell 的 -WindowStyle Hidden 和
+' 快捷方式的 WindowStyle=7 都只是"最小化"，node 控制台窗口仍会闪一下；
+' WScript.Shell.Run 的第二个参数传 0 才是真正的隐藏。
+'
+' node 路径是安装时烤进来的（process.execPath），不是硬编码——
+' nvm-windows、fnm、winget、Scoop 装的 node 位置各不相同。
+Set sh = CreateObject("WScript.Shell")
+node   = """{{NODE}}"""
+script = """{{ENTRY}}"""
+sh.Run node & " " & script & " _keepalive", 0, False
