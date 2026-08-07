@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    # 三平台都跑：启动层按平台分派，只在一个平台上测等于没测
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node: [18, 20, 22]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      # 没有 npm install —— 这个项目零运行期依赖，装机不需要它
+
+      - name: 单元与端到端测试
+        run: node --test "test/**/*.test.js"
+
+      - name: 零依赖断言
+        run: node scripts/verify-no-deps.js
+
+      - name: 示例配置可加载
+        run: node bin/gpt-router.js check --config config.example.json
+
+      - name: CLI 冒烟
+        run: |
+          node bin/gpt-router.js version
+          node bin/gpt-router.js help
+
+  secrets:
+    # 凭证扫描要看全历史，所以单独一个 job 拉完整仓库
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 扫工作区
+        run: node scripts/scan-secrets.js --all
+
+      - name: 扫全部提交历史
+        run: node scripts/scan-secrets.js --history
+
+  registration-files:
+    # macOS/Linux 的自启没有实机验证过，至少保证生成的注册文件格式合法
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 生成注册文件
+        run: |
+          node -e "
+          const fs = require('node:fs');
+          const { render } = require('./src/supervise/shared');
+          const vars = {
+            LABEL: 'io.github.gpt-router.ci', OWNER: 'ci',
+            NODE: process.execPath, ENTRY: process.cwd() + '/bin/gpt-router.js',
+            HOME: '/tmp/gpt-router-ci',
+            STDOUT: '/tmp/gpt-router-ci/out.log', STDERR: '/tmp/gpt-router-ci/err.log',
+          };
+          fs.writeFileSync('/tmp/ci.plist', render('launchd.plist.tmpl', vars));
+          fs.writeFileSync('/tmp/ci.service', render('systemd.service.tmpl', vars));
+          console.log('已生成');
+          "
+
+      - name: plist 格式校验
+        if: runner.os == 'macOS'
+        run: plutil -lint /tmp/ci.plist
+
+      - name: systemd unit 格式校验
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p ~/.config/systemd/user
+          cp /tmp/ci.service ~/.config/systemd/user/gpt-router-ci.service
+          # verify 在容器里对 user unit 会有告警，只要不是语法错误就行
+          systemd-analyze verify ~/.config/systemd/user/gpt-router-ci.service 2>&1 | tee out.txt
+          if grep -qiE 'syntax error|Unknown key|Failed to parse' out.txt; then
+            echo "unit 文件有语法问题"; exit 1
+          fi

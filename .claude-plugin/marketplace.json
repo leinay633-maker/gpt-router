@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "gpt-router",
+  "owner": {
+    "name": "leinay633-maker",
+    "url": "https://github.com/leinay633-maker"
+  },
+  "plugins": [
+    {
+      "name": "gpt-router",
+      "description": "本地反向代理 + 配套 skill，让 Claude Code 用自带的 /model 切换器使用非 Anthropic 模型。",
+      "author": {
+        "name": "leinay633-maker",
+        "url": "https://github.com/leinay633-maker"
+      },
+      "category": "tools",
+      "homepage": "https://github.com/leinay633-maker/gpt-router",
+      "license": "MIT",
+      "source": "./"
+    }
+  ]
+}
