@@ -5,6 +5,7 @@ config.json
 !secrets.example.json
 .env
 .env.*
+scripts/.scan-secrets.local
 
 # ── 安装时生成的产物（含被烤进去的本机 node 路径）──
 launcher.vbs

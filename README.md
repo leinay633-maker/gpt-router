@@ -186,6 +186,8 @@ node scripts/verify-no-deps.js    # 零依赖断言
 node scripts/scan-secrets.js --all
 ```
 
+跟你这台机器有关的词（本机用户名、内网域名）写进 `scripts/.scan-secrets.local`，一行一个正则，这个文件不进仓库，扫描时会一起用上。
+
 克隆后建议启用 pre-commit 钩子，它会在提交前扫一遍凭证：
 
 ```bash

@@ -2,8 +2,7 @@
 /**
  * scan-secrets —— 发布前凭证自查。
  *
- * 这个项目从一份私人自用脚本演化而来，那台机器上散落着真实的 API key、
- * 第三方中转站域名和本机用户名。仓库必须保证它们一个都没跟着进来。
+ * 防止真实的 API key、本机用户名和内网地址跟着代码进仓库。
  *
  * 用法：
  *   node scripts/scan-secrets.js            扫所有 git 跟踪的文件
@@ -57,27 +56,27 @@ const RULES = [
     re: /-----BEGIN (?:RSA |EC |OPENSSH |PGP )?PRIVATE KEY-----/g,
     hint: '私钥。绝不入库。',
   },
-  {
-    name: 'relay-host',
-    // 那个第三方中转站的域名。本仓库完全配置化，不预置任何中转站，
-    // 所以它不该出现在代码、注释、示例或文档的任何位置。
-    re: /\brelay-a\b|\brelay-b\b|\brelay-c\b/gi,
-    hint: '第三方中转站域名。仓库只给官方端点做示例，中转站由用户自己填进 config.json。',
-  },
-  {
-    name: 'author-machine-identity',
-    // 原作者机器上的两个本机用户名。路径应当一律走 os.homedir() /
-    // %USERPROFILE% / $HOME，不出现具体用户名。
-    re: /\buser-a\b|\buser-b\b/gi,
-    hint: '本机用户名。路径请改用 os.homedir() 或 %USERPROFILE%。',
-  },
-  {
-    name: 'internal-host',
-    // 公司内网域名，与本项目无关，出现即为误粘。
-    re: /\b[\w.-]+\.corp\.example\b/gi,
-    hint: '公司内网域名，与本项目无关。删掉。',
-  },
 ];
+
+/**
+ * 本机用户名、自己用的上游、公司内网域名这类词不能写进这个公开文件，否则扫描器本身就把它们公开了。
+ * 写进 scripts/.scan-secrets.local（已被 .gitignore 忽略）：一行一个正则，不分大小写，# 开头是注释。
+ * 没有这个文件时只跑上面的通用规则，比如在 CI 上。
+ */
+function loadLocalRules() {
+  let text;
+  try {
+    text = fs.readFileSync(path.join(__dirname, '.scan-secrets.local'), 'utf8');
+  } catch {
+    return [];
+  }
+  return text.split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith('#'))
+    .map((line) => ({ name: 'local-list', re: new RegExp(line, 'gi'), hint: '命中本机词表 scripts/.scan-secrets.local。' }));
+}
+
+RULES.push(...loadLocalRules());
 
 const MAX_BYTES = 2 * 1024 * 1024; // 超过就当二进制/生成物跳过
 
